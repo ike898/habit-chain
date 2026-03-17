@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/habit_provider.dart';
+import '../widgets/banner_ad_widget.dart';
 
 class StatsScreen extends ConsumerWidget {
   const StatsScreen({super.key});
@@ -10,7 +11,9 @@ class StatsScreen extends ConsumerWidget {
     final habitsAsync = ref.watch(habitsProvider);
     final theme = Theme.of(context);
 
-    return habitsAsync.when(
+    return Column(
+      children: [
+        Expanded(child: habitsAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (e, _) => Center(child: Text('Error: $e')),
       data: (habits) {
@@ -101,6 +104,9 @@ class StatsScreen extends ConsumerWidget {
           ),
         );
       },
+    )),
+        const BannerAdWidget(),
+      ],
     );
   }
 }

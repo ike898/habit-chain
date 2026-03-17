@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'providers/habit_provider.dart';
 import 'screens/home_screen.dart';
 import 'screens/stats_screen.dart';
+import 'screens/calendar_screen.dart';
 import 'screens/settings_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+  MobileAds.instance.initialize();
   runApp(const ProviderScope(child: HabitChainApp()));
 }
 
@@ -49,6 +52,7 @@ class _MainShellState extends State<MainShell> {
 
   final _screens = const [
     HomeScreen(),
+    CalendarScreen(),
     StatsScreen(),
     SettingsScreen(),
   ];
@@ -75,6 +79,11 @@ class _MainShellState extends State<MainShell> {
             icon: Icon(Icons.link_outlined),
             selectedIcon: Icon(Icons.link),
             label: 'Habits',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.calendar_month_outlined),
+            selectedIcon: Icon(Icons.calendar_month),
+            label: 'Calendar',
           ),
           NavigationDestination(
             icon: Icon(Icons.bar_chart_outlined),
