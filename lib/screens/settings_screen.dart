@@ -1,11 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../providers/purchase_provider.dart';
+import '../services/notification_service.dart';
 
-class SettingsScreen extends StatelessWidget {
+final _reminderEnabledProvider = StateProvider<bool>((ref) => true);
+
+class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final isPremium = ref.watch(isPremiumProvider);
+    final reminderEnabled = ref.watch(_reminderEnabledProvider);
 
     return ListView(
       padding: const EdgeInsets.all(16),
@@ -15,9 +22,17 @@ class SettingsScreen extends StatelessWidget {
         Card(
           child: SwitchListTile(
             title: const Text('Daily Reminder'),
-            subtitle: const Text('Remind to check off habits'),
-            value: true,
-            onChanged: (_) {},
+            subtitle: const Text('Remind to check off habits at 21:00'),
+            value: reminderEnabled,
+            onChanged: (value) {
+              ref.read(_reminderEnabledProvider.notifier).state = value;
+              if (value) {
+                NotificationService.scheduleDailyReminder(
+                    hour: 21, minute: 0);
+              } else {
+                NotificationService.cancelAll();
+              }
+            },
           ),
         ),
         const SizedBox(height: 24),
@@ -26,27 +41,66 @@ class SettingsScreen extends StatelessWidget {
         Card(
           child: Padding(
             padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Icon(Icons.star, color: Colors.amber, size: 32),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+            child: isPremium
+                ? Row(
                     children: [
-                      Text('Upgrade to Premium',
+                      Icon(Icons.verified, color: Colors.amber, size: 32),
+                      const SizedBox(width: 16),
+                      Text('Premium Active',
                           style: theme.textTheme.titleSmall),
-                      Text('No ads, unlimited habits, custom colors',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant)),
+                    ],
+                  )
+                : Column(
+                    children: [
+                      Row(
+                        children: [
+                          Icon(Icons.star, color: Colors.amber, size: 32),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Upgrade to Premium',
+                                    style: theme.textTheme.titleSmall),
+                                Text(
+                                    'No ads, unlimited habits, custom colors',
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                        color: theme
+                                            .colorScheme.onSurfaceVariant)),
+                              ],
+                            ),
+                          ),
+                          Text('\$2.99',
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                  color: theme.colorScheme.primary)),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: FilledButton(
+                              onPressed: () {
+                                ref.read(purchaseServiceProvider).buyPremium();
+                              },
+                              child: const Text('Buy'),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: OutlinedButton(
+                              onPressed: () {
+                                ref
+                                    .read(purchaseServiceProvider)
+                                    .restorePurchases();
+                              },
+                              child: const Text('Restore'),
+                            ),
+                          ),
+                        ],
+                      ),
                     ],
                   ),
-                ),
-                Text('\$2.99',
-                    style: theme.textTheme.titleMedium
-                        ?.copyWith(color: theme.colorScheme.primary)),
-              ],
-            ),
           ),
         ),
         const SizedBox(height: 24),
